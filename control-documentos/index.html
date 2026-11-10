@@ -1,0 +1,271 @@
+<title>Control de documentos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column registry — summary strip, entry form, filterable list of folios */
+:root{
+  --bg:#f3f5f7;--surface:#ffffff;--surface2:#eaeef2;--fg:#17212b;--muted:#5b6876;--line:#d5dce3;
+  --accent:#1f5f8b;--accent-fg:#ffffff;
+  --pend:#a35a00;--pend-bg:#fff1dc;--done:#1d7a46;--done-bg:#e1f4e8;--danger:#b3261e;
+  --font:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10161c;--surface:#18212a;--surface2:#212c37;--fg:#e8eef3;--muted:#9aa8b5;--line:#2d3a47;
+  --accent:#6fb2e0;--accent-fg:#0c1a24;
+  --pend:#f2b45f;--pend-bg:#3a2a14;--done:#7fd3a0;--done-bg:#173426;--danger:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10161c;--surface:#18212a;--surface2:#212c37;--fg:#e8eef3;--muted:#9aa8b5;--line:#2d3a47;
+  --accent:#6fb2e0;--accent-fg:#0c1a24;
+  --pend:#f2b45f;--pend-bg:#3a2a14;--done:#7fd3a0;--done-bg:#173426;--danger:#ff8a80;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--font)}
+.wrap{max-width:860px;margin:0 auto;padding-block:24px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:20px}
+header h1{font-size:24px;margin:0;text-wrap:balance;letter-spacing:-.01em}
+header p{margin:4px 0 0;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.stat b{display:block;font:600 24px/1.1 var(--mono);font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.stat.pend b{color:var(--pend)}.stat.done b{color:var(--done)}
+form.new{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:12px}
+form.new h2{margin:0;font-size:16px}
+.grid{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+label{display:grid;gap:4px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+input,textarea,select{font:inherit;font-size:15px;text-transform:none;letter-spacing:0;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;min-width:0}
+textarea{min-height:64px;resize:vertical}
+input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:8px 13px}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:600}
+button.danger{color:var(--danger)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tabs{display:flex;background:var(--surface2);border-radius:9px;padding:3px;gap:2px}
+.tabs button{border:0;background:transparent;padding:6px 12px;border-radius:7px;color:var(--muted)}
+.tabs button[aria-pressed="true"]{background:var(--surface);color:var(--fg);font-weight:600;box-shadow:0 1px 2px #0002}
+.toolbar input{flex:1;min-width:160px}
+.list{display:grid;gap:10px}
+.doc{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--pend);border-radius:10px;padding:14px 16px;display:grid;gap:8px}
+.doc.entregado{border-left-color:var(--done)}
+.doc-head{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.doc-title{min-width:0;flex:1}
+.folio{font:500 12px var(--mono);color:var(--muted)}
+.doc h3{margin:2px 0 0;font-size:16px;overflow-wrap:anywhere}
+.doc.entregado h3{color:var(--muted)}
+.pill{font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;white-space:nowrap;border:0}
+.pill.pendiente{background:var(--pend-bg);color:var(--pend)}
+.pill.entregado{background:var(--done-bg);color:var(--done)}
+.meta{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;color:var(--muted)}
+.meta time{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.meta .late{color:var(--danger);font-weight:600}
+.notes{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px}
+.doc .actions{justify-content:flex-start}
+.doc .actions button{padding:6px 11px;font-size:13px}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px}
+.empty{text-align:center;color:var(--muted);padding:32px 16px;border:1px dashed var(--line);border-radius:12px}
+.status{font-size:13px;color:var(--muted)}
+.status.warn{color:var(--pend)}
+@media (max-width:560px){.grid{grid-template-columns:1fr}.stat b{font-size:20px}}
+@media (prefers-reduced-motion:no-preference){.doc{transition:border-color .2s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Control de documentos</h1>
+    <p>Registra cada documento y márcalo como entregado cuando lo termines.</p>
+  </header>
+
+  <section class="stats" aria-label="Resumen">
+    <div class="stat"><b id="sTotal">0</b><span>Total</span></div>
+    <div class="stat pend"><b id="sPend">0</b><span>Pendientes</span></div>
+    <div class="stat done"><b id="sDone">0</b><span>Entregados</span></div>
+  </section>
+
+  <form class="new" id="form" autocomplete="off">
+    <h2 id="formTitle">Nuevo documento</h2>
+    <div class="grid">
+      <label>Documento<input id="fTitulo" required maxlength="200" placeholder="Ej.: Contrato de arrendamiento"></label>
+      <label>Entregar a<input id="fPara" maxlength="120" placeholder="Persona u oficina"></label>
+    </div>
+    <div class="grid">
+      <label>Notas<textarea id="fNotas" maxlength="2000" placeholder="Detalles, número de trámite, lo que falta…"></textarea></label>
+      <div style="display:grid;gap:10px;align-content:start">
+        <label>Fecha límite<input id="fLimite" type="date"></label>
+        <label>Estado<select id="fEstado"><option value="pendiente">Pendiente</option><option value="entregado">Entregado</option></select></label>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="button" id="fCancel" hidden>Cancelar</button>
+      <button class="primary" type="submit" id="fSubmit">Agregar documento</button>
+    </div>
+  </form>
+
+  <div class="toolbar">
+    <div class="tabs" role="group" aria-label="Filtrar">
+      <button type="button" data-f="todos" aria-pressed="true">Todos</button>
+      <button type="button" data-f="pendiente" aria-pressed="false">Pendientes</button>
+      <button type="button" data-f="entregado" aria-pressed="false">Entregados</button>
+    </div>
+    <input id="q" type="search" placeholder="Buscar documento, destinatario o nota">
+  </div>
+  <div class="status" id="status">Cargando tus documentos…</div>
+  <div class="list" id="list"></div>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  let docs = [];          // {id, folio, titulo, para, notas, limite, estado, creado, entregadoEn}
+  let filtro = "todos", busqueda = "", editId = null, confirmId = null;
+  let store = null;       // {save(doc), remove(id)}
+
+  const fmt = ms => ms ? new Date(ms).toLocaleDateString("es", {day:"2-digit",month:"short",year:"numeric"}) : "";
+  const fmtDate = s => s ? new Date(s+"T12:00:00").toLocaleDateString("es",{day:"2-digit",month:"short",year:"numeric"}) : "";
+  const hoy = () => { const d=new Date(); d.setHours(0,0,0,0); return d; };
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const setStatus = (t, warn) => { $("status").textContent = t; $("status").className = "status" + (warn ? " warn" : ""); };
+
+  function render(){
+    const pend = docs.filter(d => d.estado !== "entregado").length;
+    $("sTotal").textContent = docs.length;
+    $("sPend").textContent = pend;
+    $("sDone").textContent = docs.length - pend;
+    const q = busqueda.trim().toLowerCase();
+    const vis = docs
+      .filter(d => filtro === "todos" || d.estado === filtro)
+      .filter(d => !q || [d.titulo,d.para,d.notas,d.folio].join(" ").toLowerCase().includes(q))
+      .sort((a,b) => (a.estado === b.estado ? 0 : a.estado === "pendiente" ? -1 : 1) || (b.creado||0) - (a.creado||0));
+    if (!docs.length) {
+      $("list").innerHTML = '<div class="empty">Aún no hay documentos. Escribe el primero en el formulario de arriba y quedará como <b>pendiente</b> hasta que lo marques como entregado.</div>';
+      return;
+    }
+    if (!vis.length) { $("list").innerHTML = '<div class="empty">Ningún documento coincide con este filtro.</div>'; return; }
+    const t0 = hoy();
+    $("list").innerHTML = vis.map(d => {
+      const ent = d.estado === "entregado";
+      const late = !ent && d.limite && new Date(d.limite+"T23:59:59") < t0;
+      return `<article class="doc ${ent?"entregado":""}" data-id="${esc(d.id)}">
+        <div class="doc-head">
+          <div class="doc-title"><div class="folio">${esc(d.folio||"")}</div><h3>${esc(d.titulo)}</h3></div>
+          <button type="button" class="pill ${ent?"entregado":"pendiente"}" data-act="toggle" title="Cambiar estado">${ent?"✓ Entregado":"Pendiente"}</button>
+        </div>
+        <div class="meta">
+          ${d.para?`<span>Para: ${esc(d.para)}</span>`:""}
+          <span>Registrado <time>${fmt(d.creado)}</time></span>
+          ${d.limite?`<span class="${late?"late":""}">Límite <time>${fmtDate(d.limite)}</time>${late?" · vencido":""}</span>`:""}
+          ${ent&&d.entregadoEn?`<span>Entregado <time>${fmt(d.entregadoEn)}</time></span>`:""}
+        </div>
+        ${d.notas?`<p class="notes">${esc(d.notas)}</p>`:""}
+        ${confirmId===d.id
+          ? `<div class="confirm">¿Borrar este documento? <button type="button" class="danger" data-act="del-yes">Sí, borrar</button><button type="button" data-act="del-no">No</button></div>`
+          : `<div class="actions"><button type="button" data-act="toggle">${ent?"Marcar pendiente":"Marcar entregado"}</button><button type="button" data-act="edit">Editar</button><button type="button" class="danger" data-act="del">Borrar</button></div>`}
+      </article>`;
+    }).join("");
+  }
+
+  function nextFolio(){
+    const n = docs.reduce((m,d) => Math.max(m, parseInt(String(d.folio||"").replace(/\D/g,""),10)||0), 0) + 1;
+    return "DOC-" + String(n).padStart(3,"0");
+  }
+
+  function resetForm(){
+    editId = null; $("form").reset();
+    $("formTitle").textContent = "Nuevo documento";
+    $("fSubmit").textContent = "Agregar documento";
+    $("fCancel").hidden = true;
+  }
+
+  async function save(d){
+    try { await store.save(d); }
+    catch(e){ setStatus("No se pudo guardar: " + (e && e.message || "error") + ". Intenta de nuevo.", true); }
+  }
+
+  $("form").addEventListener("submit", async e => {
+    e.preventDefault();
+    if (!store) return;
+    const titulo = $("fTitulo").value.trim(); if (!titulo) return;
+    const estado = $("fEstado").value;
+    const prev = editId ? docs.find(d => d.id === editId) : null;
+    const d = {
+      id: prev ? prev.id : "d" + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+      folio: prev ? prev.folio : nextFolio(),
+      titulo, para: $("fPara").value.trim(), notas: $("fNotas").value.trim(),
+      limite: $("fLimite").value || "", estado,
+      creado: prev ? prev.creado : Date.now(),
+      entregadoEn: estado === "entregado" ? (prev && prev.entregadoEn) || Date.now() : null
+    };
+    resetForm();
+    await save(d);
+  });
+  $("fCancel").addEventListener("click", resetForm);
+
+  $("list").addEventListener("click", async e => {
+    const b = e.target.closest("[data-act]"); if (!b) return;
+    const id = b.closest(".doc").dataset.id;
+    const d = docs.find(x => x.id === id); if (!d) return;
+    const act = b.dataset.act;
+    if (act === "toggle") {
+      const ent = d.estado !== "entregado";
+      await save({...d, estado: ent ? "entregado" : "pendiente", entregadoEn: ent ? Date.now() : null});
+    } else if (act === "edit") {
+      editId = id;
+      $("fTitulo").value = d.titulo; $("fPara").value = d.para||""; $("fNotas").value = d.notas||"";
+      $("fLimite").value = d.limite||""; $("fEstado").value = d.estado;
+      $("formTitle").textContent = "Editar " + (d.folio||"documento");
+      $("fSubmit").textContent = "Guardar cambios";
+      $("fCancel").hidden = false;
+      $("form").scrollIntoView({behavior:"smooth", block:"start"}); $("fTitulo").focus({preventScroll:true});
+    } else if (act === "del") { confirmId = id; render(); }
+    else if (act === "del-no") { confirmId = null; render(); }
+    else if (act === "del-yes") {
+      confirmId = null;
+      try { await store.remove(id); } catch(err){ setStatus("No se pudo borrar. Intenta de nuevo.", true); }
+    }
+  });
+
+  document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
+    filtro = b.dataset.f;
+    document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    render();
+  }));
+  $("q").addEventListener("input", e => { busqueda = e.target.value; render(); });
+
+  // ---- Storage: claude.ai shared database when available, otherwise this browser ----
+  function useLocal(msg){
+    const KEY = "control-documentos-v1";
+    const read = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch(e){ return []; } };
+    const write = () => { try { localStorage.setItem(KEY, JSON.stringify(docs)); } catch(e){ setStatus("Este navegador no permite guardar datos.", true); } };
+    docs = read();
+    store = {
+      async save(d){ const i = docs.findIndex(x => x.id === d.id); if (i>=0) docs[i]=d; else docs.push(d); write(); render(); },
+      async remove(id){ docs = docs.filter(x => x.id !== id); write(); render(); }
+    };
+    setStatus(msg);
+    render();
+  }
+
+  async function start(){
+    render();
+    const db = window.claude && window.claude.use ? await window.claude.use("db") : null;
+    if (!db) { useLocal("Guardado solo en este navegador."); return; }
+    const col = db.collection("documentos");
+    store = {
+      save: d => { const {id, ...body} = d; return col.doc(id).set(body); },
+      remove: id => col.doc(id).delete()
+    };
+    const timer = setTimeout(() => setStatus("No se puede conectar con la base de datos todavía; lo que ves puede no estar al día.", true), 10000);
+    col.onSnapshot(snap => {
+      docs = snap.docs.map(s => ({id: s.id, ...s.data()}));
+      if (!snap.metadata.fromCache) { clearTimeout(timer); setStatus("Guardado automáticamente en tu cuenta."); }
+      render();
+    }, err => {
+      clearTimeout(timer);
+      setStatus("No se pudo leer la base de datos (" + (err && err.code || "error") + ").", true);
+    });
+  }
+
+  if (window.claude && window.claude.use) start();
+  else useLocal("Guardado solo en este navegador.");
+})();
+</script>
