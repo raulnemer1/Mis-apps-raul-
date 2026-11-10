@@ -18,6 +18,8 @@ Registro de documentos: escribes el nombre, a quién se entrega, notas y fecha l
 
 - Resumen de total, pendientes y entregados; filtros y búsqueda.
 - Folio automático (DOC-001, DOC-002…), aviso de documentos vencidos, edición y borrado con confirmación.
-- En claude.ai los datos se guardan en la base de datos del artefacto (solo tú los ves). Fuera de claude.ai se guardan en el navegador.
+- Cifrada con la misma contraseña maestra de la Bóveda (AES-GCM 256, PBKDF2-SHA256 310 000 iteraciones). Los datos cifrados se guardan dentro de la propia página publicada.
+- Respaldo cifrado en JSON, con opciones para verificarlo y restaurarlo; cambio de contraseña y bloqueo.
+- Incluida en la carpeta «Mis Apps» (https://claude.ai/artifact/6ncyMTAUTXLq5ZJd8d8F38).
 
 Versión publicada: https://claude.ai/artifact/KpyabrKkKEtcJh1AGxgHFz

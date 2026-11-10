@@ -1,28 +1,31 @@
-<title>Control de documentos</title>
+<!--app:start--><title>Control de documentos</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
 <style>
-/* Layout: one column registry — summary strip, entry form, filterable list of folios */
+/* Layout: one column registry — summary strip, entry form, filterable list of folios; lock screen on top */
 :root{
   --bg:#f3f5f7;--surface:#ffffff;--surface2:#eaeef2;--fg:#17212b;--muted:#5b6876;--line:#d5dce3;
-  --accent:#1f5f8b;--accent-fg:#ffffff;
-  --pend:#a35a00;--pend-bg:#fff1dc;--done:#1d7a46;--done-bg:#e1f4e8;--danger:#b3261e;
+  --accent:#1f5f8b;--accent-fg:#ffffff;--accent-soft:#dde9f2;
+  --pend:#a35a00;--pend-bg:#fff1dc;--done:#1d7a46;--done-bg:#e1f4e8;--danger:#b3261e;--shade:rgba(23,33,43,.45);
   --font:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#10161c;--surface:#18212a;--surface2:#212c37;--fg:#e8eef3;--muted:#9aa8b5;--line:#2d3a47;
-  --accent:#6fb2e0;--accent-fg:#0c1a24;
-  --pend:#f2b45f;--pend-bg:#3a2a14;--done:#7fd3a0;--done-bg:#173426;--danger:#ff8a80;color-scheme:dark}}
+  --accent:#6fb2e0;--accent-fg:#0c1a24;--accent-soft:#1a2e3e;
+  --pend:#f2b45f;--pend-bg:#3a2a14;--done:#7fd3a0;--done-bg:#173426;--danger:#ff8a80;--shade:rgba(0,0,0,.6);color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#10161c;--surface:#18212a;--surface2:#212c37;--fg:#e8eef3;--muted:#9aa8b5;--line:#2d3a47;
-  --accent:#6fb2e0;--accent-fg:#0c1a24;
-  --pend:#f2b45f;--pend-bg:#3a2a14;--done:#7fd3a0;--done-bg:#173426;--danger:#ff8a80;color-scheme:dark}
+  --accent:#6fb2e0;--accent-fg:#0c1a24;--accent-soft:#1a2e3e;
+  --pend:#f2b45f;--pend-bg:#3a2a14;--done:#7fd3a0;--done-bg:#173426;--danger:#ff8a80;--shade:rgba(0,0,0,.6);color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--font)}
 .wrap{max-width:860px;margin:0 auto;padding-block:24px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:20px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 header h1{font-size:24px;margin:0;text-wrap:balance;letter-spacing:-.01em}
 header p{margin:4px 0 0;color:var(--muted)}
+.chip{font-size:12px;padding:4px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.chip.ok{color:var(--done)}.chip.err{color:var(--danger)}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
 .stat b{display:block;font:600 24px/1.1 var(--mono);font-variant-numeric:tabular-nums}
@@ -32,11 +35,12 @@ form.new{background:var(--surface);border:1px solid var(--line);border-radius:12
 form.new h2{margin:0;font-size:16px}
 .grid{display:grid;grid-template-columns:2fr 1fr;gap:10px}
 label{display:grid;gap:4px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-input,textarea,select{font:inherit;font-size:15px;text-transform:none;letter-spacing:0;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;min-width:0}
+input,textarea,select{font:inherit;font-size:16px;text-transform:none;letter-spacing:0;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;min-width:0}
 textarea{min-height:64px;resize:vertical}
 input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:8px 13px}
 button:hover{border-color:var(--accent)}
+button:disabled{opacity:.6;cursor:wait}
 button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:600}
 button.danger{color:var(--danger)}
 .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
@@ -64,17 +68,41 @@ button.danger{color:var(--danger)}
 .doc .actions button{padding:6px 11px;font-size:13px}
 .confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px}
 .empty{text-align:center;color:var(--muted);padding:32px 16px;border:1px dashed var(--line);border-radius:12px}
-.status{font-size:13px;color:var(--muted)}
-.status.warn{color:var(--pend)}
+.msg{font-size:13px;min-height:1.3em;margin:0;color:var(--danger)}
+.msg.okm{color:var(--done);text-align:center}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tools .wide{grid-column:1/-1}
+.tools button{padding:11px}
+.note{font-size:12px;color:var(--muted);text-align:center;margin:0}
+.lock,.shade{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;overflow-y:auto}
+.lock{background:var(--bg);padding:calc(24px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.shade{background:var(--shade);align-items:flex-end}
+.lockbox{width:100%;max-width:380px;display:grid;gap:14px}
+.lockbox .mark{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);margin:0 auto}
+.lockbox .mark svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.lockbox h2{font-size:22px;margin:0;text-align:center}
+.center{text-align:center}
+.sub{color:var(--muted);font-size:14px;margin:0}
+.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.lockbox button{width:100%;padding:12px}
+.warnbox{background:var(--pend-bg);color:var(--pend);padding:10px 12px;border-radius:10px;font-size:13px}
+.sheet{background:var(--surface);width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:grid;gap:12px;max-height:92vh;overflow-y:auto}
+.sheet h3{margin:0;font-size:20px}
+.sheet .actions{display:grid;grid-template-columns:1fr 1fr}
+.result{background:var(--done-bg);color:var(--done);border-radius:10px;padding:10px 12px;font-size:13px}
+.result:empty{display:none}
 @media (max-width:560px){.grid{grid-template-columns:1fr}.stat b{font-size:20px}}
-@media (prefers-reduced-motion:no-preference){.doc{transition:border-color .2s}}
 </style>
 
-<div class="wrap">
+<div class="wrap" id="app" hidden>
   <header>
-    <h1>Control de documentos</h1>
-    <p>Registra cada documento y márcalo como entregado cuando lo termines.</p>
+    <div>
+      <h1>Control de documentos</h1>
+      <p>Registra cada documento y márcalo como entregado cuando lo termines.</p>
+    </div>
+    <span class="chip" id="status">Cargando…</span>
   </header>
+  <p class="msg okm" id="topMsg"></p>
 
   <section class="stats" aria-label="Resumen">
     <div class="stat"><b id="sTotal">0</b><span>Total</span></div>
@@ -109,163 +137,268 @@ button.danger{color:var(--danger)}
     </div>
     <input id="q" type="search" placeholder="Buscar documento, destinatario o nota">
   </div>
-  <div class="status" id="status">Cargando tus documentos…</div>
   <div class="list" id="list"></div>
+
+  <div class="tools">
+    <button type="button" class="primary wide" id="b-backup">Guardar respaldo cifrado</button>
+    <button type="button" id="b-verify">Verificar respaldo</button>
+    <button type="button" id="b-restore">Restaurar respaldo</button>
+    <button type="button" id="b-pass">Cambiar contraseña</button>
+    <button type="button" id="b-lock">Bloquear</button>
+    <input type="file" id="f-backup" accept="application/json,.json" hidden>
+  </div>
+  <p class="note">Tus documentos se guardan cifrados (AES-256) con tu contraseña maestra. Si olvidas la contraseña no se pueden recuperar, así que guarda un respaldo cifrado de vez en cuando.</p>
 </div>
 
+<div class="shade" id="pw" hidden>
+  <form class="sheet" id="pw-form" role="dialog" aria-modal="true" aria-labelledby="pw-title">
+    <h3 id="pw-title"></h3>
+    <p class="sub" id="pw-sub"></p>
+    <label id="pw-l1"><span id="pw-l1t">Contraseña</span><input type="password" id="pw-1" autocomplete="current-password"></label>
+    <label id="pw-l2">Nueva contraseña<input type="password" id="pw-2" autocomplete="new-password"></label>
+    <label id="pw-l3">Repite la nueva<input type="password" id="pw-3" autocomplete="new-password"></label>
+    <div class="result" id="pw-result"></div>
+    <p class="msg" id="pw-err"></p>
+    <div class="actions">
+      <button type="button" id="pw-cancel">Cancelar</button>
+      <button class="primary" type="submit" id="pw-go">Aceptar</button>
+    </div>
+  </form>
+</div>
+
+<div class="lock" id="lock">
+  <form class="lockbox" id="lockform">
+    <div class="mark"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+    <div class="eyebrow center">Control de documentos</div>
+    <h2 id="l-title">Desbloquear</h2>
+    <p class="sub center" id="l-sub"></p>
+    <label>Contraseña maestra<input type="password" id="l-pass" autocomplete="current-password" placeholder="La misma de tu Bóveda"></label>
+    <label id="l-confw" hidden>Repite la contraseña<input type="password" id="l-conf" autocomplete="new-password"></label>
+    <div class="warnbox" id="l-warn" hidden>Usa la misma contraseña maestra de tu Bóveda. Si la olvidas, los documentos cifrados no se pueden recuperar.</div>
+    <p class="msg" id="l-err"></p>
+    <button class="primary" type="submit" id="l-go">Desbloquear</button>
+  </form>
+</div>
+
+<script type="application/json" id="state">{}</script>
 <script>
 (function(){
-  const $ = id => document.getElementById(id);
-  let docs = [];          // {id, folio, titulo, para, notas, limite, estado, creado, entregadoEn}
-  let filtro = "todos", busqueda = "", editId = null, confirmId = null;
-  let store = null;       // {save(doc), remove(id)}
+const SRC=(function(){var h=document.body.innerHTML,m='<!--app'+':start-->',i=h.indexOf(m);return i>=0?h.slice(i):h;})();
+const hs=document.head.querySelector('style');
+const RESET=(hs&&hs.textContent)||':root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}[hidden]{display:none!important}';
+const $=id=>document.getElementById(id);
+const APPNAME='Control de documentos';
+let stored;try{stored=JSON.parse($('state').textContent)}catch(e){stored={}}
+const isEnc=b=>!!(b&&b.iv&&b.data&&b.salt);
+let blob=isEnc(stored)?stored:null;
+let state=null,key=null,saltB64=null,iterV=310000;
+const ITER=310000;
 
-  const fmt = ms => ms ? new Date(ms).toLocaleDateString("es", {day:"2-digit",month:"short",year:"numeric"}) : "";
-  const fmtDate = s => s ? new Date(s+"T12:00:00").toLocaleDateString("es",{day:"2-digit",month:"short",year:"numeric"}) : "";
-  const hoy = () => { const d=new Date(); d.setHours(0,0,0,0); return d; };
-  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const setStatus = (t, warn) => { $("status").textContent = t; $("status").className = "status" + (warn ? " warn" : ""); };
+/* ---------- crypto (same scheme as Bóveda: PBKDF2-SHA256 + AES-GCM-256) ---------- */
+const enc=new TextEncoder(),dec=new TextDecoder();
+function b64(b){const a=new Uint8Array(b);let s='';for(let i=0;i<a.length;i+=0x8000)s+=String.fromCharCode(...a.subarray(i,i+0x8000));return btoa(s)}
+function unb64(s){return Uint8Array.from(atob(s),c=>c.charCodeAt(0))}
+async function derive(pass,salt,iter){const m=await crypto.subtle.importKey('raw',enc.encode(pass),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:iter,hash:'SHA-256'},m,{name:'AES-GCM',length:256},true,['encrypt','decrypt'])}
+async function seal(){const iv=crypto.getRandomValues(new Uint8Array(12));const c=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(JSON.stringify({docs:state.docs})));return {v:2,iter:iterV,salt:saltB64,iv:b64(iv),data:b64(c)}}
+async function openBlob(b,k){const d=JSON.parse(dec.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(b.iv)},k,unb64(b.data))));if(!d||!Array.isArray(d.docs))throw Error('formato');return d}
 
-  function render(){
-    const pend = docs.filter(d => d.estado !== "entregado").length;
-    $("sTotal").textContent = docs.length;
-    $("sPend").textContent = pend;
-    $("sDone").textContent = docs.length - pend;
-    const q = busqueda.trim().toLowerCase();
-    const vis = docs
-      .filter(d => filtro === "todos" || d.estado === filtro)
-      .filter(d => !q || [d.titulo,d.para,d.notas,d.folio].join(" ").toLowerCase().includes(q))
-      .sort((a,b) => (a.estado === b.estado ? 0 : a.estado === "pendiente" ? -1 : 1) || (b.creado||0) - (a.creado||0));
-    if (!docs.length) {
-      $("list").innerHTML = '<div class="empty">Aún no hay documentos. Escribe el primero en el formulario de arriba y quedará como <b>pendiente</b> hasta que lo marques como entregado.</div>';
-      return;
+/* ---------- app ---------- */
+let filtro='todos',busqueda='',editId=null,confirmId=null;
+const fmt=ms=>ms?new Date(ms).toLocaleDateString('es',{day:'2-digit',month:'short',year:'numeric'}):'';
+const fmtDate=s=>s?new Date(s+'T12:00:00').toLocaleDateString('es',{day:'2-digit',month:'short',year:'numeric'}):'';
+const hoy=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function render(){
+  if(!state)return;
+  const docs=state.docs;
+  const pend=docs.filter(d=>d.estado!=='entregado').length;
+  $('sTotal').textContent=docs.length;$('sPend').textContent=pend;$('sDone').textContent=docs.length-pend;
+  const q=busqueda.trim().toLowerCase();
+  const vis=docs.filter(d=>filtro==='todos'||d.estado===filtro)
+    .filter(d=>!q||[d.titulo,d.para,d.notas,d.folio].join(' ').toLowerCase().includes(q))
+    .sort((a,b)=>(a.estado===b.estado?0:a.estado==='pendiente'?-1:1)||(b.creado||0)-(a.creado||0));
+  if(!docs.length){$('list').innerHTML='<div class="empty">Aún no hay documentos. Escribe el primero en el formulario de arriba y quedará como <b>pendiente</b> hasta que lo marques como entregado.</div>';return}
+  if(!vis.length){$('list').innerHTML='<div class="empty">Ningún documento coincide con este filtro.</div>';return}
+  const t0=hoy();
+  $('list').innerHTML=vis.map(d=>{
+    const ent=d.estado==='entregado';
+    const late=!ent&&d.limite&&new Date(d.limite+'T23:59:59')<t0;
+    return `<article class="doc ${ent?'entregado':''}" data-id="${esc(d.id)}">
+      <div class="doc-head">
+        <div class="doc-title"><div class="folio">${esc(d.folio||'')}</div><h3>${esc(d.titulo)}</h3></div>
+        <button type="button" class="pill ${ent?'entregado':'pendiente'}" data-act="toggle" title="Cambiar estado">${ent?'✓ Entregado':'Pendiente'}</button>
+      </div>
+      <div class="meta">
+        ${d.para?`<span>Para: ${esc(d.para)}</span>`:''}
+        <span>Registrado <time>${fmt(d.creado)}</time></span>
+        ${d.limite?`<span class="${late?'late':''}">Límite <time>${fmtDate(d.limite)}</time>${late?' · vencido':''}</span>`:''}
+        ${ent&&d.entregadoEn?`<span>Entregado <time>${fmt(d.entregadoEn)}</time></span>`:''}
+      </div>
+      ${d.notas?`<p class="notes">${esc(d.notas)}</p>`:''}
+      ${confirmId===d.id
+        ?`<div class="confirm">¿Borrar este documento? <button type="button" class="danger" data-act="del-yes">Sí, borrar</button><button type="button" data-act="del-no">No</button></div>`
+        :`<div class="actions"><button type="button" data-act="toggle">${ent?'Marcar pendiente':'Marcar entregado'}</button><button type="button" data-act="edit">Editar</button><button type="button" class="danger" data-act="del">Borrar</button></div>`}
+    </article>`;
+  }).join('');
+}
+function nextFolio(){const n=state.docs.reduce((m,d)=>Math.max(m,parseInt(String(d.folio||'').replace(/\D/g,''),10)||0),0)+1;return 'DOC-'+String(n).padStart(3,'0')}
+function resetForm(){editId=null;$('form').reset();$('formTitle').textContent='Nuevo documento';$('fSubmit').textContent='Agregar documento';$('fCancel').hidden=true}
+function upsert(d){const i=state.docs.findIndex(x=>x.id===d.id);if(i>=0)state.docs[i]=d;else state.docs.push(d);changed()}
+
+$('form').addEventListener('submit',e=>{
+  e.preventDefault();if(!state)return;
+  const titulo=$('fTitulo').value.trim();if(!titulo)return;
+  const estado=$('fEstado').value;
+  const prev=editId?state.docs.find(d=>d.id===editId):null;
+  const d={id:prev?prev.id:'d'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    folio:prev?prev.folio:nextFolio(),titulo,para:$('fPara').value.trim(),notas:$('fNotas').value.trim(),
+    limite:$('fLimite').value||'',estado,creado:prev?prev.creado:Date.now(),
+    entregadoEn:estado==='entregado'?(prev&&prev.entregadoEn)||Date.now():null};
+  resetForm();upsert(d);
+});
+$('fCancel').addEventListener('click',resetForm);
+$('list').addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const id=b.closest('.doc').dataset.id;const d=state.docs.find(x=>x.id===id);if(!d)return;
+  const act=b.dataset.act;
+  if(act==='toggle'){const ent=d.estado!=='entregado';upsert({...d,estado:ent?'entregado':'pendiente',entregadoEn:ent?Date.now():null})}
+  else if(act==='edit'){
+    editId=id;$('fTitulo').value=d.titulo;$('fPara').value=d.para||'';$('fNotas').value=d.notas||'';
+    $('fLimite').value=d.limite||'';$('fEstado').value=d.estado;
+    $('formTitle').textContent='Editar '+(d.folio||'documento');$('fSubmit').textContent='Guardar cambios';$('fCancel').hidden=false;
+    $('form').scrollIntoView({behavior:'smooth',block:'start'});$('fTitulo').focus({preventScroll:true});
+  }
+  else if(act==='del'){confirmId=id;render()}
+  else if(act==='del-no'){confirmId=null;render()}
+  else if(act==='del-yes'){confirmId=null;state.docs=state.docs.filter(x=>x.id!==id);changed()}
+});
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{
+  filtro=b.dataset.f;document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-pressed',x===b));render();
+}));
+$('q').addEventListener('input',e=>{busqueda=e.target.value;render()});
+
+/* ---------- saving (only encrypted data is ever published) ---------- */
+const status=(t,c)=>{const s=$('status');s.textContent=t;s.className='chip'+(c?' '+c:'')};
+const artP=(window.claude&&window.claude.use?window.claude.use('artifact'):Promise.resolve(null)).catch(()=>null);
+let timer=null,readOnly=false,saving=null;
+function buildDoc(b){
+  const json=JSON.stringify(b).replace(/</g,'\\u003c');
+  const body=SRC.replace(/(<script type="application\/json" id="state">)[\s\S]*?(<\/script>)/,(_,a,c)=>a+json+c);
+  return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>'+RESET+'</style></head><body>'+body+'</body></html>';
+}
+async function saveNow(){
+  timer=null;if(!key||!state)return;
+  const a=await artP;if(!a){readOnly=true;status('Sin guardado','err');return}
+  try{const b=await seal();await a.publish(buildDoc(b));blob=b;status('Cifrado · guardado','ok')}
+  catch(e){const c=e&&e.code;if(c==='conflict')return;if(c==='not_granted'||c==='not_writer'){readOnly=true;status('Solo lectura','err')}else status('No se pudo guardar','err')}
+}
+function changed(){ssSave();render();
+  if(readOnly){status('Sin guardado','err');return}
+  status('Guardando…');clearTimeout(timer);timer=setTimeout(()=>{saving=saveNow()},900);
+}
+async function flush(){if(timer){clearTimeout(timer);saving=saveNow()}if(saving)await saving}
+
+/* ---------- lock / setup ---------- */
+function showLock(){ssClear();
+  $('app').hidden=true;$('pw').hidden=true;$('lock').hidden=false;
+  const setup=!blob;
+  $('l-title').textContent=setup?'Activa el cifrado':'Desbloquear';
+  $('l-sub').textContent=setup?'Protege tus documentos con tu contraseña maestra.':'Escribe tu contraseña maestra.';
+  $('l-confw').hidden=!setup;$('l-warn').hidden=!setup;
+  $('l-pass').autocomplete=setup?'new-password':'current-password';
+  $('l-go').textContent=setup?'Cifrar y abrir':'Desbloquear';
+  $('l-err').textContent='';$('l-pass').value=$('l-conf').value='';
+  setTimeout(()=>$('l-pass').focus(),60);
+}
+function openApp(){ssSave();$('lock').hidden=true;$('app').hidden=false;render();if(!readOnly)artP.then(a=>status(a?'Cifrado · guardado':'Sin guardado',a?'ok':'err'))}
+$('lockform').addEventListener('submit',async e=>{
+  e.preventDefault();const er=$('l-err'),go=$('l-go'),p=$('l-pass').value;er.textContent='';go.disabled=true;
+  try{
+    if(blob){
+      try{const k=await derive(p,unb64(blob.salt),blob.iter||ITER);state=await openBlob(blob,k);key=k;saltB64=blob.salt;iterV=blob.iter||ITER}
+      catch(x){er.textContent='Contraseña incorrecta.';return}
+      $('l-pass').value='';openApp();
+    }else{
+      if(p.length<12){er.textContent='Usa al menos 12 caracteres (igual que en la Bóveda).';return}
+      if(p!==$('l-conf').value){er.textContent='Las contraseñas no coinciden.';return}
+      const salt=crypto.getRandomValues(new Uint8Array(16));saltB64=b64(salt);iterV=ITER;key=await derive(p,salt,ITER);
+      state={docs:[]};$('l-pass').value=$('l-conf').value='';
+      openApp();changed();$('topMsg').textContent='✓ Cifrado activado. Ya puedes agregar tus documentos.';
     }
-    if (!vis.length) { $("list").innerHTML = '<div class="empty">Ningún documento coincide con este filtro.</div>'; return; }
-    const t0 = hoy();
-    $("list").innerHTML = vis.map(d => {
-      const ent = d.estado === "entregado";
-      const late = !ent && d.limite && new Date(d.limite+"T23:59:59") < t0;
-      return `<article class="doc ${ent?"entregado":""}" data-id="${esc(d.id)}">
-        <div class="doc-head">
-          <div class="doc-title"><div class="folio">${esc(d.folio||"")}</div><h3>${esc(d.titulo)}</h3></div>
-          <button type="button" class="pill ${ent?"entregado":"pendiente"}" data-act="toggle" title="Cambiar estado">${ent?"✓ Entregado":"Pendiente"}</button>
-        </div>
-        <div class="meta">
-          ${d.para?`<span>Para: ${esc(d.para)}</span>`:""}
-          <span>Registrado <time>${fmt(d.creado)}</time></span>
-          ${d.limite?`<span class="${late?"late":""}">Límite <time>${fmtDate(d.limite)}</time>${late?" · vencido":""}</span>`:""}
-          ${ent&&d.entregadoEn?`<span>Entregado <time>${fmt(d.entregadoEn)}</time></span>`:""}
-        </div>
-        ${d.notas?`<p class="notes">${esc(d.notas)}</p>`:""}
-        ${confirmId===d.id
-          ? `<div class="confirm">¿Borrar este documento? <button type="button" class="danger" data-act="del-yes">Sí, borrar</button><button type="button" data-act="del-no">No</button></div>`
-          : `<div class="actions"><button type="button" data-act="toggle">${ent?"Marcar pendiente":"Marcar entregado"}</button><button type="button" data-act="edit">Editar</button><button type="button" class="danger" data-act="del">Borrar</button></div>`}
-      </article>`;
-    }).join("");
-  }
+  }finally{go.disabled=false}
+});
+$('b-lock').onclick=async()=>{await flush();state=null;key=null;$('topMsg').textContent='';$('list').innerHTML='';resetForm();showLock()};
 
-  function nextFolio(){
-    const n = docs.reduce((m,d) => Math.max(m, parseInt(String(d.folio||"").replace(/\D/g,""),10)||0), 0) + 1;
-    return "DOC-" + String(n).padStart(3,"0");
-  }
-
-  function resetForm(){
-    editId = null; $("form").reset();
-    $("formTitle").textContent = "Nuevo documento";
-    $("fSubmit").textContent = "Agregar documento";
-    $("fCancel").hidden = true;
-  }
-
-  async function save(d){
-    try { await store.save(d); }
-    catch(e){ setStatus("No se pudo guardar: " + (e && e.message || "error") + ". Intenta de nuevo.", true); }
-  }
-
-  $("form").addEventListener("submit", async e => {
-    e.preventDefault();
-    if (!store) return;
-    const titulo = $("fTitulo").value.trim(); if (!titulo) return;
-    const estado = $("fEstado").value;
-    const prev = editId ? docs.find(d => d.id === editId) : null;
-    const d = {
-      id: prev ? prev.id : "d" + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
-      folio: prev ? prev.folio : nextFolio(),
-      titulo, para: $("fPara").value.trim(), notas: $("fNotas").value.trim(),
-      limite: $("fLimite").value || "", estado,
-      creado: prev ? prev.creado : Date.now(),
-      entregadoEn: estado === "entregado" ? (prev && prev.entregadoEn) || Date.now() : null
-    };
-    resetForm();
-    await save(d);
-  });
-  $("fCancel").addEventListener("click", resetForm);
-
-  $("list").addEventListener("click", async e => {
-    const b = e.target.closest("[data-act]"); if (!b) return;
-    const id = b.closest(".doc").dataset.id;
-    const d = docs.find(x => x.id === id); if (!d) return;
-    const act = b.dataset.act;
-    if (act === "toggle") {
-      const ent = d.estado !== "entregado";
-      await save({...d, estado: ent ? "entregado" : "pendiente", entregadoEn: ent ? Date.now() : null});
-    } else if (act === "edit") {
-      editId = id;
-      $("fTitulo").value = d.titulo; $("fPara").value = d.para||""; $("fNotas").value = d.notas||"";
-      $("fLimite").value = d.limite||""; $("fEstado").value = d.estado;
-      $("formTitle").textContent = "Editar " + (d.folio||"documento");
-      $("fSubmit").textContent = "Guardar cambios";
-      $("fCancel").hidden = false;
-      $("form").scrollIntoView({behavior:"smooth", block:"start"}); $("fTitulo").focus({preventScroll:true});
-    } else if (act === "del") { confirmId = id; render(); }
-    else if (act === "del-no") { confirmId = null; render(); }
-    else if (act === "del-yes") {
-      confirmId = null;
-      try { await store.remove(id); } catch(err){ setStatus("No se pudo borrar. Intenta de nuevo.", true); }
+/* ---------- password sheet (change / restore / verify) ---------- */
+let pwMode=null,pwFile=null;
+function openPw(mode,file){
+  pwMode=mode;pwFile=file||null;$('pw-err').textContent='';$('pw-result').textContent='';
+  ['pw-1','pw-2','pw-3'].forEach(i=>$(i).value='');
+  const two=mode==='change';$('pw-l2').hidden=$('pw-l3').hidden=!two;
+  $('pw-title').textContent=mode==='change'?'Cambiar contraseña':mode==='restore'?'Restaurar respaldo':'Verificar respaldo';
+  $('pw-l1t').textContent=mode==='change'?'Contraseña actual':'Contraseña del respaldo';
+  $('pw-sub').textContent=mode==='change'?'Si cambias aquí, recuerda que las demás apps siguen con la contraseña anterior.':(file?file.name+' · ':'')+(mode==='restore'?'Reemplazará los documentos actuales por los del respaldo.':'Solo revisa el archivo; no cambia nada.');
+  $('pw-go').textContent=mode==='change'?'Cambiar':mode==='restore'?'Restaurar':'Verificar';
+  $('pw').hidden=false;setTimeout(()=>$('pw-1').focus(),60);
+}
+function closePw(){$('pw').hidden=true;pwMode=null;pwFile=null;['pw-1','pw-2','pw-3'].forEach(i=>$(i).value='')}
+$('pw-cancel').onclick=closePw;
+$('pw').onclick=e=>{if(e.target===$('pw'))closePw()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&pwMode)closePw()});
+$('b-pass').onclick=()=>openPw('change');
+let fileMode='restore';
+$('b-restore').onclick=()=>{fileMode='restore';$('f-backup').value='';$('f-backup').click()};
+$('b-verify').onclick=()=>{fileMode='verify';$('f-backup').value='';$('f-backup').click()};
+$('f-backup').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{pwFile=JSON.parse(await f.text());if(!isEnc(pwFile))throw 0;pwFile.name=f.name;openPw(fileMode,pwFile)}
+  catch(x){$('topMsg').textContent='Ese archivo no es un respaldo cifrado válido.'}
+};
+$('pw-form').addEventListener('submit',async e=>{
+  e.preventDefault();const er=$('pw-err'),go=$('pw-go');er.textContent='';go.disabled=true;
+  try{
+    if(pwMode==='change'){
+      try{await openBlob(blob||await seal(),await derive($('pw-1').value,unb64(saltB64),iterV))}catch(x){er.textContent='La contraseña actual no es correcta.';return}
+      const n=$('pw-2').value;if(n.length<12){er.textContent='Usa al menos 12 caracteres.';return}
+      if(n!==$('pw-3').value){er.textContent='Las contraseñas nuevas no coinciden.';return}
+      const salt=crypto.getRandomValues(new Uint8Array(16));saltB64=b64(salt);iterV=ITER;key=await derive(n,salt,ITER);
+      closePw();changed();$('topMsg').textContent='✓ Contraseña cambiada. Guarda un respaldo nuevo: los anteriores siguen con la contraseña vieja.';
+    }else{
+      let data,k;
+      try{k=await derive($('pw-1').value,unb64(pwFile.salt),pwFile.iter||ITER);data=await openBlob(pwFile,k)}
+      catch(x){er.textContent='Contraseña incorrecta o el respaldo no es de este control.';return}
+      const pend=data.docs.filter(d=>d.estado!=='entregado').length;
+      const info='✓ Respaldo correcto: '+data.docs.length+' documentos ('+pend+' pendientes, '+(data.docs.length-pend)+' entregados)'+(pwFile.exportedAt?' · creado '+new Date(pwFile.exportedAt).toLocaleDateString('es'):'');
+      if(pwMode==='verify'){$('pw-result').textContent=info;$('pw-1').value='';return}
+      state=data;key=k;saltB64=pwFile.salt;iterV=pwFile.iter||ITER;
+      closePw();changed();$('topMsg').textContent=info.replace('Respaldo correcto','Respaldo restaurado');
     }
-  });
+  }finally{go.disabled=false}
+});
 
-  document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
-    filtro = b.dataset.f;
-    document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-pressed", x === b));
-    render();
-  }));
-  $("q").addEventListener("input", e => { busqueda = e.target.value; render(); });
+/* ---------- backup ---------- */
+$('b-backup').onclick=async()=>{
+  const m=$('topMsg');m.textContent='';
+  try{
+    const b=await seal(),n=new Date(),d=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');
+    let dl=null;try{dl=window.claude&&await window.claude.use('downloads')}catch(x){}
+    if(!dl)throw{code:'unavailable'};
+    await dl.save({filename:'respaldo-documentos-cifrado-'+d+'.json',data:JSON.stringify({app:APPNAME,alg:'AES-GCM-256',kdf:'PBKDF2-SHA256',...b,documentos:state.docs.length,exportedAt:n.toISOString()})});
+    m.textContent='✓ Respaldo cifrado guardado. Puedes revisarlo con «Verificar respaldo».';
+  }catch(e){m.textContent=e&&e.code==='declined'?'Descarga cancelada.':e&&e.code==='rate_limited'?'Espera un momento e inténtalo de nuevo.':'No se pudo descargar en esta vista.'}
+};
 
-  // ---- Storage: claude.ai shared database when available, otherwise this browser ----
-  function useLocal(msg){
-    const KEY = "control-documentos-v1";
-    const read = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch(e){ return []; } };
-    const write = () => { try { localStorage.setItem(KEY, JSON.stringify(docs)); } catch(e){ setStatus("Este navegador no permite guardar datos.", true); } };
-    docs = read();
-    store = {
-      async save(d){ const i = docs.findIndex(x => x.id === d.id); if (i>=0) docs[i]=d; else docs.push(d); write(); render(); },
-      async remove(id){ docs = docs.filter(x => x.id !== id); write(); render(); }
-    };
-    setStatus(msg);
-    render();
-  }
-
-  async function start(){
-    render();
-    const db = window.claude && window.claude.use ? await window.claude.use("db") : null;
-    if (!db) { useLocal("Guardado solo en este navegador."); return; }
-    const col = db.collection("documentos");
-    store = {
-      save: d => { const {id, ...body} = d; return col.doc(id).set(body); },
-      remove: id => col.doc(id).delete()
-    };
-    const timer = setTimeout(() => setStatus("No se puede conectar con la base de datos todavía; lo que ves puede no estar al día.", true), 10000);
-    col.onSnapshot(snap => {
-      docs = snap.docs.map(s => ({id: s.id, ...s.data()}));
-      if (!snap.metadata.fromCache) { clearTimeout(timer); setStatus("Guardado automáticamente en tu cuenta."); }
-      render();
-    }, err => {
-      clearTimeout(timer);
-      setStatus("No se pudo leer la base de datos (" + (err && err.code || "error") + ").", true);
-    });
-  }
-
-  if (window.claude && window.claude.use) start();
-  else useLocal("Guardado solo en este navegador.");
+if(!(window.crypto&&crypto.subtle)){$('lock').innerHTML='<div class="lockbox"><h2>Navegador no compatible</h2><p class="sub center">Abre esta app desde una conexión segura (HTTPS) para activar el cifrado.</p></div>';return}
+/* ---------- se mantiene abierta 5 min al salir; luego se bloquea ---------- */
+const GRACE=5*60*1000,SSK='ss-Documentos';
+function ssClear(){try{sessionStorage.removeItem(SSK)}catch(e){}}
+async function ssSave(){try{if(!key)return;const raw=await crypto.subtle.exportKey('raw',key);sessionStorage.setItem(SSK,JSON.stringify({k:b64(raw),s:saltB64,i:iterV,t:Date.now()}))}catch(e){}}
+function ssTouch(){try{const o=JSON.parse(sessionStorage.getItem(SSK)||'null');if(o){o.t=Date.now();sessionStorage.setItem(SSK,JSON.stringify(o))}}catch(e){}}
+let hiddenAt=0;
+document.addEventListener('visibilitychange',()=>{if(document.hidden){hiddenAt=Date.now();ssTouch();return}const away=hiddenAt?Date.now()-hiddenAt:0;hiddenAt=0;if(away>GRACE&&$('lock').hidden){$('b-lock').click()}});
+window.addEventListener('pagehide',ssTouch);
+async function trySession(){try{if(!blob)return false;const o=JSON.parse(sessionStorage.getItem(SSK)||'null');if(!o||o.s!==blob.salt||Date.now()-o.t>GRACE)return false;const k=await crypto.subtle.importKey('raw',unb64(o.k),{name:'AES-GCM'},true,['encrypt','decrypt']);const d=await openBlob(blob,k);key=k;saltB64=blob.salt;iterV=blob.iter||ITER;state=d;openApp();return true}catch(e){return false}}
+trySession().then(ok=>{if(!ok)showLock()});
 })();
 </script>
